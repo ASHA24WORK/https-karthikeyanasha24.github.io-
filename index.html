@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -186,6 +187,7 @@
 
     .popup-content h2 {
       margin: 0 0 10px;
+      Penalize h2
       font-size: 24px;
       font-weight: bold;
     }
@@ -352,8 +354,6 @@
         width: 90%;
       }
     }
-
-  
   </style>
 </head>
 
@@ -375,7 +375,7 @@
       onclick="document.getElementById('region-selector').value='caribbean'; document.getElementById('region-selector').dispatchEvent(new Event('change'));">CARIBBEAN</button>
   </div>
 
-  <button class="find-rep-button" onclick="openPopup()">Find Representative</button>
+  <button class="find-rep-button" onclick="openPopup()">Find a Rep with Your Zip Code</button>
 
   <div id="map"></div>
 
@@ -388,7 +388,7 @@
   <div class="popup-overlay" id="popupOverlay">
     <div class="popup-content">
       <span class="close-btn" onclick="closePopup()">×</span>
-      <h2>Find a Representative</h2>
+      <h2>Find a Rep with Your Zip Code</h2>
       <input type="text" id="zipInput" placeholder="Enter ZIP Code" maxlength="5">
       <div class="error-message" id="errorMessage"></div>
       <div class="result-list" id="resultList"></div>
@@ -486,6 +486,12 @@
       caribbean: '#524F4F'
     };
 
+    const regionHoverText = {
+      us: isMobileDevice() ? 'Tap on a county' : 'Hover on your county',
+      canada: isMobileDevice() ? 'Tap on a province' : 'Hover on your province',
+      caribbean: isMobileDevice() ? 'Tap on a country' : 'Hover on your country'
+    };
+
     const stateCodeMap = {
       AL: '01', AK: '02', AZ: '04', AR: '05', CA: '06', CO: '08', CT: '09', DE: '10', FL: '12', GA: '13',
       HI: '15', ID: '16', IL: '17', IN: '18', IA: '19', KS: '20', KY: '21', LA: '22', ME: '23', MD: '24',
@@ -576,7 +582,7 @@
 
         return fetch('Zip_Code_County_Assignments_with_FIPS.csv')
           .then(res => {
-            if (!res.ok) throw new Error('Failed to fetch Zip_Code_County_Assignments.csv');
+            if (!res.ok) throw new Error('Failed to fetch Zip_Code_County_Assignments_with_FIPS.csv');
             return res.text();
           })
           .then(text => {
@@ -637,7 +643,12 @@
           const feature = e.features[0];
           const fipsCode = feature.properties.FIPS;
           const rep = currentRegion === 'us' ? repMap.get(fipsCode) || 'N/A' : regionReps[currentRegion];
-          const displayName = feature.properties.NAME || currentRegion.toUpperCase();
+          let displayName = feature.properties.NAME || currentRegion.toUpperCase();
+          if (currentRegion === 'us' && displayName) {
+            displayName = `${displayName} County`;
+          } else if (currentRegion === 'caribbean' && displayName.toLowerCase() === 'dominican rep.') {
+            displayName = 'Dominican Republic';
+          }
 
           locationName.textContent = displayName;
           repName.textContent = rep || regionReps[currentRegion] || 'N/A';
@@ -664,7 +675,7 @@
         map.on('mouseleave', 'counties-fill', () => {
           if (!isHoverEnabled) return;
           map.getCanvas().style.cursor = '';
-          locationName.textContent = 'Hover on your county';
+          locationName.textContent = regionHoverText[currentRegion];
           repName.textContent = 'Find a Representative';
           sidebarButton.style.display = 'none';
 
@@ -685,12 +696,17 @@
           const featureId = feature.id;
           const fipsCode = feature.properties.FIPS;
           const rep = currentRegion === 'us' ? repMap.get(fipsCode) || 'N/A' : regionReps[currentRegion];
-          const displayName = feature.properties.NAME || currentRegion.toUpperCase();
+          let displayName = feature.properties.NAME || currentRegion.toUpperCase();
+          if (currentRegion === 'us' && displayName) {
+            displayName = `${displayName} County`;
+          } else if (currentRegion === 'caribbean' && displayName.toLowerCase() === 'dominican rep.') {
+            displayName = 'Dominican Republic';
+          }
 
           if (selectedCountyId === featureId) {
             isHoverEnabled = true;
             selectedCountyId = null;
-            locationName.textContent = 'Hover on your county';
+            locationName.textContent = regionHoverText[currentRegion];
             repName.textContent = 'Find a Representative';
             sidebarButton.style.display = 'none';
             geojson.features.forEach((f, i) => {
@@ -720,7 +736,7 @@
             console.log('Click outside counties, resetting');
             isHoverEnabled = true;
             selectedCountyId = null;
-            locationName.textContent = 'Hover on your county';
+            locationName.textContent = regionHoverText[currentRegion];
             repName.textContent = 'Find a Representative';
             sidebarButton.style.display = 'none';
             geojson?.features.forEach((f, i) => {
@@ -762,7 +778,12 @@
                 selectedCountyId = featureId;
                 const fipsCode = feature.properties.FIPS;
                 const rep = currentRegion === 'us' ? repMap.get(fipsCode) || 'N/A' : regionReps[currentRegion];
-                const displayName = feature.properties.NAME || currentRegion.toUpperCase();
+                let displayName = feature.properties.NAME || currentRegion.toUpperCase();
+                if (currentRegion === 'us' && displayName) {
+                  displayName = `${displayName} County`;
+                } else if (currentRegion === 'caribbean' && displayName.toLowerCase() === 'dominican rep.') {
+                  displayName = 'Dominican Republic';
+                }
 
                 locationName.textContent = displayName;
                 repName.textContent = rep || regionReps[currentRegion] || 'N/A';
@@ -780,7 +801,12 @@
             selectedCountyId = featureId;
             const fipsCode = feature.properties.FIPS;
             const rep = currentRegion === 'us' ? repMap.get(fipsCode) || 'N/A' : regionReps[currentRegion];
-            const displayName = feature.properties.NAME || currentRegion.toUpperCase();
+            let displayName = feature.properties.NAME || currentRegion.toUpperCase();
+            if (currentRegion === 'us' && displayName) {
+              displayName = `${displayName} County`;
+            } else if (currentRegion === 'caribbean' && displayName.toLowerCase() === 'dominican rep.') {
+              displayName = 'Dominican Republic';
+            }
 
             locationName.textContent = displayName;
             repName.textContent = rep || regionReps[currentRegion] || 'N/A';
@@ -801,7 +827,7 @@
             console.log('Touch outside counties, resetting');
             isHoverEnabled = true;
             selectedCountyId = null;
-            locationName.textContent = 'Tap on a county';
+            locationName.textContent = regionHoverText[currentRegion];
             repName.textContent = 'Find a Representative';
             sidebarButton.style.display = 'none';
             geojson?.features.forEach((f, i) => {
@@ -854,7 +880,7 @@
       if (map.getSource('states')) map.removeSource('states');
       geojson = null;
 
-      document.getElementById('location-name').textContent = isMobileDevice() ? 'Tap on a county' : 'Hover on your county';
+      document.getElementById('location-name').textContent = regionHoverText[currentRegion];
       document.getElementById('rep-name').textContent = 'Find a Representative';
       document.getElementById('sidebar-button').style.display = 'none';
 
@@ -920,6 +946,11 @@
 
           if (region === 'caribbean') {
             geojson.features = geojson.features.filter(f => f.properties.NAME.toLowerCase() !== 'cuba');
+            geojson.features.forEach(f => {
+              if (f.properties.NAME.toLowerCase() === 'dominican rep.') {
+                f.properties.NAME = 'Dominican Republic';
+              }
+            });
           }
 
           geojson.features = geojson.features.filter(feature => {
@@ -1211,7 +1242,7 @@
 
     async function loadCSV() {
       try {
-        const response = await fetch('https://raw.githubusercontent.com/karthikeyanasha24/karthikeyanasha24.github.io/main/Zip_Code_County_Assignments.csv');
+        const response = await fetch('Zip_Code_County_Assignments_with_FIPS.csv');
         if (!response.ok) throw new Error('Failed to load CSV file');
         const text = await response.text();
         return parseCSV(text);
@@ -1223,14 +1254,14 @@
 
     function parseCSV(text) {
       const lines = text.trim().split('\n');
-      const headers = lines[0].split(',').map(h => h.trim());
+      const headers = parseCSVLine(lines[0]);
       const data = [];
       for (let i = 1; i < lines.length; i++) {
-        const row = lines[i].split(',').map(c => c.trim());
-        if (row.length === headers.length) {
+        const row = parseCSVLine(lines[i]);
+        if (row.length >= headers.length) {
           const obj = {};
           headers.forEach((header, index) => {
-            obj[header] = row[index];
+            obj[header] = row[index] || '';
           });
           data.push(obj);
         }
@@ -1260,8 +1291,11 @@
       }
 
       matches.forEach(match => {
-        const fipsCode = `US${match.FIPS}`;
-        const countyName = fipsToCountyMap.get(fipsCode) || match.County;
+        const fipsCode = `US${match.fips_code}`;
+        let countyName = fipsToCountyMap.get(fipsCode) || 'Unknown County';
+        if (countyName !== 'Unknown County') {
+          countyName = `${countyName} County`;
+        }
         const resultItem = document.createElement('div');
         resultItem.innerHTML = `County: ${countyName}<br>MFG Rep: ${match['MFG Rep'] || 'None'}`;
         resultListDiv.appendChild(resultItem);
