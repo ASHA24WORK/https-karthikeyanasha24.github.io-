@@ -6,7 +6,7 @@
   <title>MapLibre Interactive Map with State Borders</title>
   <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700&display=swap" rel="stylesheet" />
-  <style>
+   <style>
     html,
     body {
       margin: 0;
@@ -1283,7 +1283,7 @@
         return;
       }
 
-      // Load ZIP_COUNTY_122024.csv to get FIPS code
+      // Load ZIP_COUNTY_122024.csv to get FIPS code with highest TOT_RATIO
       const zipData = await loadCSV('ZIP_COUNTY_122024.csv');
       const zipMatches = zipData.filter(row => row.ZIP === zipInput);
 
@@ -1292,9 +1292,11 @@
         return;
       }
 
-      // Get the FIPS code with the highest TOT_RATIO
+      // Select the FIPS code with the highest TOT_RATIO
       const bestMatch = zipMatches.reduce((prev, curr) => {
-        return parseFloat(curr.TOT_RATIO) > parseFloat(prev.TOT_RATIO) ? curr : prev;
+        const prevRatio = parseFloat(prev.TOT_RATIO) || 0;
+        const currRatio = parseFloat(curr.TOT_RATIO) || 0;
+        return currRatio > prevRatio ? curr : prev;
       }, zipMatches[0]);
 
       const fipsCode = `US${bestMatch.COUNTY}`; // COUNTY is the FIPS code in ZIP_COUNTY_122024.csv
