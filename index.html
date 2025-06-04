@@ -446,11 +446,17 @@
     let tapCount = 0;
     let lastTapTime = 0;
     const doubleTapDelay = 300;
+    // NOTE: This is where the geographic data for the selected region is fetched.
+// Currently, it uses a region-specific GeoJSON file (e.g., 'counties.geojson', 'canada.geojson', or 'caribbean.geojson').
+// To switch to a HubSpot table, replace this fetch with an API call to the HubSpot HubDB table.
+// Example HubDB API call: fetch('https://api.hubapi.com/hubdb/api/v2/tables/{tableId}/rows?hapikey={apiKey}')
+// Expected data structure: GeoJSON FeatureCollection with features containing { FIPS or NAME, geometry }
+// Ensure the response is parsed to match the current GeoJSON structure: { type: 'FeatureCollection', features: [{ properties: { FIPS or NAME }, geometry }] }
 
     const regionSources = {
-      us: 'counties.geojson',
-      canada: 'canada.geojson',
-      caribbean: 'caribbean.geojson'
+      us: 'https://raw.githubusercontent.com/karthikeyanasha24/karthikeyanasha24.github.io/main/counties.geojson',
+      canada: 'https://raw.githubusercontent.com/karthikeyanasha24/karthikeyanasha24.github.io/main/canada.geojson',
+      caribbean: 'https://raw.githubusercontent.com/karthikeyanasha24/karthikeyanasha24.github.io/main/caribbean.geojson'
     };
 
     const regionReps = {
@@ -566,8 +572,14 @@
       minZoom: regionView.us.minZoom,
       maxZoom: regionView.us.maxZoom
     });
+    // NOTE: This is where the geographic data for counties is fetched.
+// Currently, it uses 'counties.geojson' to load county boundaries and properties.
+// To switch to a HubSpot table, replace this fetch with an API call to the HubSpot HubDB table.
+// Example HubDB API call: fetch('https://api.hubapi.com/hubdb/api/v2/tables/{tableId}/rows?hapikey={apiKey}')
+// Expected data structure: GeoJSON FeatureCollection with features containing { FIPS, NAME, geometry }
+// Ensure the response is parsed to match the current GeoJSON structure: { type: 'FeatureCollection', features: [{ properties: { FIPS, NAME }, geometry }] }
 
-    fetch('counties.geojson')
+    fetch('https://raw.githubusercontent.com/karthikeyanasha24/karthikeyanasha24.github.io/main/counties.geojson')
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch counties.geojson for mapping');
         return res.json();
@@ -581,7 +593,14 @@
           }
         });
 
-        return fetch('Zip_Code_County_Assignments_with_FIPS.csv')
+        // NOTE: This is where the data source for representative zip code assignments is fetched.
+// Currently, it uses 'Zip_Code_County_Assignments.csv' to map zip codes to counties and representatives.
+// To switch to a HubSpot table, replace this fetch with an API call to the HubSpot HubDB table.
+// Example HubDB API call: fetch('https://api.hubapi.com/hubdb/api/v2/tables/{tableId}/rows?hapikey={apiKey}')
+// Expected data structure: Array of objects with fields like { stateAbbr, county, rep }
+// Ensure the response is parsed to match the current CSV structure: [stateAbbr, zip, county, ..., rep]
+
+        return fetch('https://raw.githubusercontent.com/karthikeyanasha24/karthikeyanasha24.github.io/main/Zip_Code_County_Assignments_with_FIPS.csv')
           .then(res => {
             if (!res.ok) throw new Error('Failed to fetch Zip_Code_County_Assignments_with_FIPS.csv');
             return res.text();
@@ -1106,9 +1125,15 @@
             type: 'geojson',
             data: geojson
           });
+          // NOTE: This is where the geographic data for US state boundaries is fetched.
+// Currently, it uses 'states.geojson' to load state boundaries.
+// To switch to a HubSpot table, replace this fetch with an API call to the HubSpot HubDB table.
+// Example HubDB API call: fetch('https://api.hubapi.com/hubdb/api/v2/tables/{tableId}/rows?hapikey={apiKey}')
+// Expected data structure: GeoJSON FeatureCollection with features containing { STATEFP, NAME, geometry }
+// Ensure the response is parsed to match the current GeoJSON structure: { type: 'FeatureCollection', features: [{ properties: { STATEFP, NAME }, geometry }] }
 
           if (region === 'us') {
-            fetch('states.geojson')
+            fetch('https://raw.githubusercontent.com/karthikeyanasha24/karthikeyanasha24.github.io/main/states.geojson')
               .then(res => {
                 if (!res.ok) throw new Error('Failed to fetch states.geojson');
                 return res.json();
@@ -1283,6 +1308,13 @@
         return;
       }
 
+      // NOTE: This is where the data source for ZIP code to county mapping is fetched.
+// Currently, it uses 'ZIP_COUNTY_122024.csv' to map ZIP codes to counties based on TOT_RATIO.
+// To switch to a HubSpot table, replace this fetch with an API call to the HubSpot HubDB table.
+// Example HubDB API call: fetch('https://api.hubapi.com/hubdb/api/v2/tables/{tableId}/rows?hapikey={apiKey}')
+// Expected data structure: Array of objects with fields like { ZIP, COUNTY, TOT_RATIO }
+// Ensure the response is parsed to match the current CSV structure: { ZIP, COUNTY, TOT_RATIO }
+
       // Load ZIP_COUNTY_122024.csv to get FIPS code with highest TOT_RATIO
       const zipData = await loadCSV('ZIP_COUNTY_122024.csv');
       const zipMatches = zipData.filter(row => row.ZIP === zipInput);
@@ -1300,6 +1332,13 @@
       }, zipMatches[0]);
 
       const fipsCode = `US${bestMatch.COUNTY}`; // COUNTY is the FIPS code in ZIP_COUNTY_122024.csv
+
+      // NOTE: This is where the data source for county and representative assignments is fetched.
+// Currently, it uses 'Zip_Code_County_Assignments_with_FIPS.csv' to get county names and representatives.
+// To switch to a HubSpot table, replace this fetch with an API call to the HubSpot HubDB table.
+// Example HubDB API call: fetch('https://api.hubapi.com/hubdb/api/v2/tables/{tableId}/rows?hapikey={apiKey}')
+// Expected data structure: Array of objects with fields like { fips_code, County, 'MFG Rep' }
+// Ensure the response is parsed to match the current CSV structure: { fips_code, County, 'MFG Rep' }
 
       // Load Zip_Code_County_Assignments_with_FIPS.csv to get county name and rep
       const countyData = await loadCSV('Zip_Code_County_Assignments_with_FIPS.csv');
